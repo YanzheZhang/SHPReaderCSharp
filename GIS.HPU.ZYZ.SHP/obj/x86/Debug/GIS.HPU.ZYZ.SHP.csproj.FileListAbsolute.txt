@@ -1,0 +1,10 @@
+F:\国遥\工具\shp c#读取\GIS.HPU.ZYZ.SHP\GIS.HPU.ZYZ.SHP\bin\Debug\GIS.HPU.ZYZ.SHP.dll
+F:\国遥\工具\shp c#读取\GIS.HPU.ZYZ.SHP\GIS.HPU.ZYZ.SHP\bin\Debug\GIS.HPU.ZYZ.SHP.pdb
+F:\国遥\工具\shp c#读取\GIS.HPU.ZYZ.SHP\GIS.HPU.ZYZ.SHP\obj\x86\Debug\GIS.HPU.ZYZ.SHP.dll
+F:\国遥\工具\shp c#读取\GIS.HPU.ZYZ.SHP\GIS.HPU.ZYZ.SHP\obj\x86\Debug\GIS.HPU.ZYZ.SHP.pdb
+F:\国遥\工具\shp c#读取\GIS.HPU.ZYZ.SHP\GIS.HPU.ZYZ.SHP\obj\x86\Debug\GIS.HPU.ZYZ.SHP.csprojResolveAssemblyReference.cache
+F:\GitHub\SHPReader\SHPReaderCSharp\GIS.HPU.ZYZ.SHP\bin\Debug\GIS.HPU.ZYZ.SHP.dll
+F:\GitHub\SHPReader\SHPReaderCSharp\GIS.HPU.ZYZ.SHP\bin\Debug\GIS.HPU.ZYZ.SHP.pdb
+F:\GitHub\SHPReader\SHPReaderCSharp\GIS.HPU.ZYZ.SHP\obj\x86\Debug\GIS.HPU.ZYZ.SHP.csprojResolveAssemblyReference.cache
+F:\GitHub\SHPReader\SHPReaderCSharp\GIS.HPU.ZYZ.SHP\obj\x86\Debug\GIS.HPU.ZYZ.SHP.dll
+F:\GitHub\SHPReader\SHPReaderCSharp\GIS.HPU.ZYZ.SHP\obj\x86\Debug\GIS.HPU.ZYZ.SHP.pdb

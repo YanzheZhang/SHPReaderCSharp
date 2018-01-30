@@ -1,0 +1,18 @@
+F:\国遥\工具\shp c#读取\GIS.HPU.ZYZ.SHP\SHPTest\bin\Debug\SHPTest.exe.config
+F:\国遥\工具\shp c#读取\GIS.HPU.ZYZ.SHP\SHPTest\bin\Debug\SHPTest.exe
+F:\国遥\工具\shp c#读取\GIS.HPU.ZYZ.SHP\SHPTest\bin\Debug\SHPTest.pdb
+F:\国遥\工具\shp c#读取\GIS.HPU.ZYZ.SHP\SHPTest\bin\Debug\GIS.HPU.ZYZ.SHP.dll
+F:\国遥\工具\shp c#读取\GIS.HPU.ZYZ.SHP\SHPTest\bin\Debug\GIS.HPU.ZYZ.SHP.pdb
+F:\国遥\工具\shp c#读取\GIS.HPU.ZYZ.SHP\SHPTest\obj\x86\Debug\SHPTest.csprojResolveAssemblyReference.cache
+F:\国遥\工具\shp c#读取\GIS.HPU.ZYZ.SHP\SHPTest\obj\x86\Debug\SHPTest.exe
+F:\国遥\工具\shp c#读取\GIS.HPU.ZYZ.SHP\SHPTest\obj\x86\Debug\SHPTest.pdb
+F:\国遥\工具\shp c#读取\GIS.HPU.ZYZ.SHP\SHPTest\bin\Debug\ProjNet.dll
+F:\GitHub\SHPReader\SHPReaderCSharp\SHPTest\bin\Debug\SHPTest.exe.config
+F:\GitHub\SHPReader\SHPReaderCSharp\SHPTest\obj\x86\Debug\SHPTest.exe
+F:\GitHub\SHPReader\SHPReaderCSharp\SHPTest\obj\x86\Debug\SHPTest.pdb
+F:\GitHub\SHPReader\SHPReaderCSharp\SHPTest\bin\Debug\SHPTest.exe
+F:\GitHub\SHPReader\SHPReaderCSharp\SHPTest\bin\Debug\SHPTest.pdb
+F:\GitHub\SHPReader\SHPReaderCSharp\SHPTest\bin\Debug\GIS.HPU.ZYZ.SHP.dll
+F:\GitHub\SHPReader\SHPReaderCSharp\SHPTest\bin\Debug\ProjNet.dll
+F:\GitHub\SHPReader\SHPReaderCSharp\SHPTest\bin\Debug\GIS.HPU.ZYZ.SHP.pdb
+F:\GitHub\SHPReader\SHPReaderCSharp\SHPTest\obj\x86\Debug\SHPTest.csprojResolveAssemblyReference.cache

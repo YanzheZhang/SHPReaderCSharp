@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GIS.HPU.ZYZ.SHP", "GIS.HPU.ZYZ.SHP\GIS.HPU.ZYZ.SHP.csproj", "{A819E4CD-29F2-4B5F-ABAA-BC2ED8B1A579}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SHPTest", "SHPTest\SHPTest.csproj", "{D39F07CD-BDCF-4F0D-9D78-4729B1CE504C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A819E4CD-29F2-4B5F-ABAA-BC2ED8B1A579}.Debug|x86.ActiveCfg = Debug|x86
+		{A819E4CD-29F2-4B5F-ABAA-BC2ED8B1A579}.Debug|x86.Build.0 = Debug|x86
+		{A819E4CD-29F2-4B5F-ABAA-BC2ED8B1A579}.Release|x86.ActiveCfg = Release|x86
+		{A819E4CD-29F2-4B5F-ABAA-BC2ED8B1A579}.Release|x86.Build.0 = Release|x86
+		{D39F07CD-BDCF-4F0D-9D78-4729B1CE504C}.Debug|x86.ActiveCfg = Debug|x86
+		{D39F07CD-BDCF-4F0D-9D78-4729B1CE504C}.Debug|x86.Build.0 = Debug|x86
+		{D39F07CD-BDCF-4F0D-9D78-4729B1CE504C}.Release|x86.ActiveCfg = Release|x86
+		{D39F07CD-BDCF-4F0D-9D78-4729B1CE504C}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
