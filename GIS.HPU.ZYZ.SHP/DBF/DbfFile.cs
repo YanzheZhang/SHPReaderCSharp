@@ -30,7 +30,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         /// Helps read/write dbf file header information.
         /// </summary>
         protected DbfHeader mHeader;
-
         /// <summary>
         /// flag that indicates whether the header was written or not...
         /// </summary>
@@ -39,16 +38,22 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         /// Streams to read and write to the DBF file.
         /// </summary>
         protected Stream mDbfFile = null;
+        /// <summary>
+        /// 读取流
+        /// </summary>
         protected BinaryReader mDbfFileReader = null;
+        /// <summary>
+        /// 写入流
+        /// </summary>
         protected BinaryWriter mDbfFileWriter = null;
-
+        /// <summary>
+        /// 编码
+        /// </summary>
         private Encoding encoding = Encoding.ASCII;
-
         /// <summary>
         /// File that was opened, if one was opened at all.
         /// </summary>
         protected string mFileName = "";
-
         /// <summary>
         /// Number of records read using ReadNext() methods only. This applies only when we are using a forward-only stream.
         /// mRecordsReadCount is used to keep track of record index. With a seek enabled stream, 
@@ -60,6 +65,50 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         /// </summary>
         protected bool mIsForwardOnly = false;
         protected bool mIsReadOnly = false;
+
+        #region 
+        /// <summary>
+        /// Access DBF header with information on columns. Use this object for faster access to header. 
+        /// Remove one layer of function calls by saving header reference and using it directly to access columns.
+        /// </summary>
+        public DbfHeader Header
+        {
+            get
+            {
+                return mHeader;
+            }
+        }
+        /// <summary>
+        /// Returns true if we can not write to the DBF file stream.
+        /// </summary>
+        public bool IsReadOnly
+        {
+            get
+            {
+                return mIsReadOnly;
+            }
+        }
+        /// <summary>
+        /// Returns true if we can not seek to different locations within the file, such as internet connections.
+        /// </summary>
+        public bool IsForwardOnly
+        {
+            get
+            {
+                return mIsForwardOnly;
+            }
+        }
+        /// <summary>
+        /// Returns the name of the filestream.
+        /// </summary>
+        public string FileName
+        {
+            get
+            {
+                return mFileName;
+            }
+        }
+        #endregion 
 
         [Obsolete]
         public DbfFile()
@@ -123,7 +172,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
                 mIsForwardOnly = !mDbfFile.CanSeek;
             }
         }
-
         /// <summary>
         /// Open a DBF file or create a new one.
         /// </summary>
@@ -134,7 +182,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
             mFileName = sPath;
             Open(File.Open(sPath, mode, access, share));
         }
-
         /// <summary>
         /// Open a DBF file or create a new one.
         /// </summary>
@@ -145,7 +192,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
             mFileName = sPath;
             Open(File.Open(sPath, mode, access));
         }
-
         /// <summary>
         /// Open a DBF file or create a new one.
         /// </summary>
@@ -166,7 +212,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
             Open(sPath, FileMode.Create, FileAccess.ReadWrite);
             mHeaderWritten = false;
         }
-
         /// <summary>
         /// Update header info, flush buffers and close streams. You should always call this method when you are done with a DBF file.
         /// </summary>
@@ -208,50 +253,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         }
 
         /// <summary>
-        /// Returns true if we can not write to the DBF file stream.
-        /// </summary>
-        public bool IsReadOnly
-        {
-            get
-            {
-                return mIsReadOnly;
-                /*
-                if (mDbfFile != null)
-                  return !mDbfFile.CanWrite; 
-                return true;
-                */
-            }
-        }
-
-        /// <summary>
-        /// Returns true if we can not seek to different locations within the file, such as internet connections.
-        /// </summary>
-        public bool IsForwardOnly
-        {
-            get
-            {
-                return mIsForwardOnly;
-                /*
-                if(mDbfFile!=null)
-                  return !mDbfFile.CanSeek;
-        
-                return false;
-                */
-            }
-        }
-
-        /// <summary>
-        /// Returns the name of the filestream.
-        /// </summary>
-        public string FileName
-        {
-            get
-            {
-                return mFileName;
-            }
-        }
-
-        /// <summary>
         /// Read next record and fill data into parameter oFillRecord. Returns true if a record was read, otherwise false.
         /// </summary>
         /// <param name="oFillRecord"></param>
@@ -287,7 +288,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
             }
             return bRead;
         }
-
         /// <summary>
         /// Tries to read a record and returns a new record object or null if nothing was read.
         /// </summary>
@@ -299,7 +299,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
 
             return ReadNext(orec) ? orec : null;
         }
-
         /// <summary>
         /// Reads a record specified by index into oFillRecord object. You can use this method 
         /// to read in and process records without creating and discarding record objects.
@@ -347,6 +346,13 @@ namespace GIS.HPU.ZYZ.SHP.DBF
             return bRead;
         }
 
+        /// <summary>
+        /// 读取指定行列的值
+        /// </summary>
+        /// <param name="rowIndex"></param>
+        /// <param name="columnIndex"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
         public bool ReadValue(int rowIndex, int columnIndex, out string result)
         {
             result = String.Empty;
@@ -510,17 +516,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
 
             return false;
         }
-
-        /// <summary>
-        /// Access DBF header with information on columns. Use this object for faster access to header. 
-        /// Remove one layer of function calls by saving header reference and using it directly to access columns.
-        /// </summary>
-        public DbfHeader Header
-        {
-            get
-            {
-                return mHeader;
-            }
-        }
+ 
     }
 }

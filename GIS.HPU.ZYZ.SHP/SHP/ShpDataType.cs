@@ -103,11 +103,13 @@ namespace GIS.HPU.ZYZ.SHP.SHP
 
     /// <summary>
     /// 记录几何类型基类
+    /// 每条记录有相应的文件头RecordNum DataLength ShapeType
     /// </summary>
     public class BaseShape
     {
         /// <summary>
         /// 记录在文件中的编号 索引从1开始
+        /// 相当于featureid 第几个记录
         /// </summary>
         public ulong RecordNum;
         /// <summary>
@@ -116,7 +118,7 @@ namespace GIS.HPU.ZYZ.SHP.SHP
         /// 以字为单位，一字等于2字节，等于16位  
         /// 长度不包括每条记录的RecordNum和DataLength共8字节4位
         /// </summary>
-        public ulong DataLength;
+        public int DataLength;
         /// <summary>
         /// 记录的几何类型
         /// </summary>
@@ -146,9 +148,8 @@ namespace GIS.HPU.ZYZ.SHP.SHP
         /// 地理坐标系转投影坐标系
         /// </summary>
         public virtual void CoordTransGeo2Pro()
-        {
+        {  
         }
-
     }
 
     /// <summary>
@@ -180,24 +181,26 @@ namespace GIS.HPU.ZYZ.SHP.SHP
         public override void TransFormWKT(string wkt)
         {
             if (wkt.Contains("POINT")) {
-                if (wkt.Contains("POINT"))
+                Regex coordinateGroupPattern = new Regex("[0-9.]+ [0-9., ]+");
+                MatchCollection coordinateGroupMatch = coordinateGroupPattern.Matches(wkt);
+                List<string> value = new List<string>();
+                //如果大于0说明正常
+                if (coordinateGroupMatch.Count != 0)
                 {
-                    Regex coordinateGroupPattern = new Regex("[0-9.]+ [0-9., ]+");
-                    MatchCollection coordinateGroupMatch = coordinateGroupPattern.Matches(wkt);
-                    List<string> value = new List<string>();
-                    //如果大于0说明正常
-                    if (coordinateGroupMatch.Count != 0)
+                    char[] scpoint = { ' ' };
+                    string[] xy = coordinateGroupMatch[0].Value.Split(scpoint, StringSplitOptions.RemoveEmptyEntries);//coordinateGroupMatch[0].Value.Split(',');
+                    if (xy.Length >= 2)//是2或者三  
                     {
-                        char[] scpoint = { ' ' };
-                        string[] xy = coordinateGroupMatch[0].Value.Split(scpoint, StringSplitOptions.RemoveEmptyEntries);//coordinateGroupMatch[0].Value.Split(',');
-                        if (xy.Length < 2)//是2或者三  
-                        {
-                            X = Convert.ToDouble(xy[0]);
-                            Y = Convert.ToDouble(xy[1]);
-                        }
+                        X = Convert.ToDouble(xy[0]);
+                        Y = Convert.ToDouble(xy[1]);
                     }
+
                 }
             }
+            this.GeoType = ShapeType.Point;
+            //this.RecordNum //放在外围控制 
+            //记录长度 每条长度不算RecorderNum和ContentLength的4字 点固定为10字
+            this.DataLength = 10;//字数 1字=2byte=16位 
         }
         /// <summary>
         /// 投影坐标系转地理坐标系
@@ -223,10 +226,10 @@ namespace GIS.HPU.ZYZ.SHP.SHP
     /// </summary>
     public class EVPolyLine : BaseShape
     {
-        public double Box1; //边界盒
-        public double Box2; //边界盒
-        public double Box3; //边界盒
-        public double Box4; //边界盒
+        public double Xmin; //边界盒
+        public double Ymin; //边界盒
+        public double Xmax; //边界盒
+        public double Ymax; //边界盒
         public int NumParts; //部分的数目:包含子线段个数
         public int NumPoints; //点的总数目
         public ArrayList Parts; //在部分中第一个点的索引
@@ -261,6 +264,10 @@ namespace GIS.HPU.ZYZ.SHP.SHP
             }
             return wkt;
         }
+        /// <summary>
+        /// 导入wkt
+        /// </summary>
+        /// <param name="wkt"></param>
         public override void TransFormWKT(string wkt)
         {
             if (wkt.Contains("LINESTRING"))
@@ -323,15 +330,27 @@ namespace GIS.HPU.ZYZ.SHP.SHP
                 NumPoints = Points.Count;
                 //求边界盒
                 double[] border = BorderUtil.GetBorder(Points);
-                Box1 = border[0];
-                Box2 = border[1];
-                Box3 = border[2];
-                Box4 = border[3];
+                Xmin = border[0];
+                Ymin = border[1];
+                Xmax = border[2];
+                Ymax = border[3];
+
+                this.GeoType = ShapeType.PolyLine;
+                //this.RecordNum //放在外围控制 
+                //记录长度 每条长度不算RecorderNum和ContentLength的4字  NumParts固定为1
+                this.DataLength = 24 + 8 * NumPoints;//字数 1字=2byte=16位 
             }
             else
             {
+                Parts.Add(0);
                 NumParts = 0;
                 NumPoints = 0;
+                Xmin = 0;
+                Ymin = 0;
+                Xmax = 0;
+                Ymax = 0;
+                this.GeoType = ShapeType.PolyLine;
+                this.DataLength = 24 + 8 * NumPoints;//字数 1字=2byte=16位 
             }
         }
 
@@ -357,6 +376,12 @@ namespace GIS.HPU.ZYZ.SHP.SHP
                 Points.RemoveAt(i);
                 Points.Insert(i,point);
             }
+            //更新边界盒
+            double[] border = BorderUtil.GetBorder(Points);
+            Xmin = border[0];
+            Ymin = border[1];
+            Xmax = border[2];
+            Ymax = border[3];
         }
     }
     /// <summary>
@@ -364,10 +389,10 @@ namespace GIS.HPU.ZYZ.SHP.SHP
     /// </summary>
     public class EVPolygon : BaseShape
     {
-        public double Box1; //边界盒
-        public double Box2; //边界盒
-        public double Box3; //边界盒
-        public double Box4; //边界盒
+        public double Xmin; //边界盒
+        public double Ymin; //边界盒
+        public double Xmax; //边界盒
+        public double Ymax; //边界盒
         public int NumParts; //部分的数目:包含子环的个数
         public int NumPoints; //点的总数目
         public ArrayList Parts; //在部分中第一个点的索引
@@ -467,15 +492,27 @@ namespace GIS.HPU.ZYZ.SHP.SHP
                 NumPoints = Points.Count;
                 //求边界盒
                 double[] border = BorderUtil.GetBorder(Points);
-                Box1 = border[0];
-                Box2 = border[1];
-                Box3 = border[2];
-                Box4 = border[3];
+                Xmin = border[0];
+                Ymin = border[1];
+                Xmax = border[2];
+                Ymax = border[3];
+
+                this.GeoType = ShapeType.Polygon;
+                //this.RecordNum //放在外围控制 
+                //记录长度 每条长度不算RecorderNum和ContentLength的4字  NumParts固定为1
+                this.DataLength = 24 + 8 * NumPoints;//字数 1字=2byte=16位 
             }
             else
             {
+                Parts.Add(0);
                 NumParts = 0;
                 NumPoints = 0;
+                Xmin = 0;
+                Ymin = 0;
+                Xmax = 0;
+                Ymax = 0;
+                this.GeoType = ShapeType.Polygon;
+                this.DataLength = 24 + 8 * NumPoints;//字数 1字=2byte=16位 
             }
         }
 
@@ -502,6 +539,12 @@ namespace GIS.HPU.ZYZ.SHP.SHP
                 Points.RemoveAt(i);
                 Points.Insert(i, point);
             }
+            //更新边界盒
+            double[] border = BorderUtil.GetBorder(Points);
+            Xmin = border[0];
+            Ymin = border[1];
+            Xmax = border[2];
+            Ymax = border[3];
         }
     }
 }

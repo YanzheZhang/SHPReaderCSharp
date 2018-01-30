@@ -28,7 +28,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
     /// </remarks>
     public class DbfColumn : ICloneable
     {
-
         /*
          (FoxPro/FoxBase) Double integer *NOT* a memo field
          G 	General 	(dBASE V: like Memo) OLE Objects in MS Windows versions 
@@ -37,7 +36,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
          T 	DateTime 	(FoxPro)
          I 	Integer 	Length: 4 byte little endian integer 	(FoxPro)
         */
-
         /// <summary>
         ///  Great information on DBF located here: 
         ///  http://www.clicketyclick.dk/databases/xbase/format/data_types.html
@@ -120,11 +118,107 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         /// Length of the data in bytes; some rules apply which are in the spec (read more above).
         /// </summary>
         private int mLength;
-
         /// <summary>
         /// Decimal precision count, or number of digits afer decimal point. This applies to Number types only.
         /// </summary>
         private int mDecimalCount;
+
+        #region 
+        /// <summary>
+        /// Field Name.
+        /// </summary>
+        public string Name
+        {
+            get
+            {
+                return mName;
+            }
+            set
+            {
+                //name:
+                if (string.IsNullOrEmpty(value))
+                    throw new Exception("Field names must be at least one char long and can not be null.");
+                if (value.Length > 11)
+                    throw new Exception("Field names can not be longer than 11 chars.");
+                mName = value;
+            }
+        }
+        /// <summary>
+        /// Field Type (C N L D or M).
+        /// 新加的F按N算
+        /// </summary>
+        public DbfColumnType ColumnType
+        {
+            get
+            {
+                return mType;
+            }
+        }
+        /// <summary>
+        /// Returns column type as a char, (as written in the DBF column header)
+        /// N=number, C=char, B=binary, L=boolean, D=date, I=integer, M=memo
+        /// </summary>
+        public char ColumnTypeChar
+        {
+            get
+            {
+                switch (mType)
+                {
+                    case DbfColumnType.Number:
+                        return 'N';
+
+                    case DbfColumnType.Character:
+                        return 'C';
+
+                    case DbfColumnType.Binary:
+                        return 'B';
+
+                    case DbfColumnType.Boolean:
+                        return 'L';
+
+                    case DbfColumnType.Date:
+                        return 'D';
+
+                    case DbfColumnType.Integer:
+                        return 'I';
+
+                    case DbfColumnType.Memo:
+                        return 'M';
+                }
+                throw new Exception("Unrecognized field type!");
+            }
+        }
+        /// <summary>
+        /// Field Data Address offset from the start of the record.
+        /// </summary>
+        public int DataAddress
+        {
+            get
+            {
+                return mDataAddress;
+            }
+        }
+        /// <summary>
+        /// Length of the data in bytes.
+        /// </summary>
+        public int Length
+        {
+            get
+            {
+                return mLength;
+            }
+        }
+        /// <summary>
+        /// Field decimal count in Binary, indicating where the decimal is.
+        /// </summary>
+        public int DecimalCount
+        {
+            get
+            {
+                return mDecimalCount;
+            }
+        }
+        #endregion
 
         /// <summary>
         /// Full spec constructor sets all relevant fields.
@@ -175,7 +269,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
             else if ((type == DbfColumnType.Character || type == DbfColumnType.Binary) && mLength > 65535)
                 throw new Exception("Invalid field length specified. For Char and binary types, length up to 65535 is supported. For maximum compatibility use up to 255.");
         }
-
         /// <summary>
         /// Create a new column fully specifying all properties.
         /// </summary>
@@ -187,125 +280,13 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         internal DbfColumn(string sName, DbfColumnType type, int nLength, int nDecimals, int nDataAddress)
             : this(sName, type, nLength, nDecimals)
         {
-
             mDataAddress = nDataAddress;
-
         }
-
         public DbfColumn(string sName, DbfColumnType type)
             : this(sName, type, 0, 0)
         {
             if (type == DbfColumnType.Number || type == DbfColumnType.Character)
                 throw new Exception("For number and character field types you must specify Length and Decimal Precision.");
-
-        }
-
-        /// <summary>
-        /// Field Name.
-        /// </summary>
-        public string Name
-        {
-            get
-            {
-                return mName;
-            }
-
-            set
-            {
-                //name:
-                if (string.IsNullOrEmpty(value))
-                    throw new Exception("Field names must be at least one char long and can not be null.");
-
-                if (value.Length > 11)
-                    throw new Exception("Field names can not be longer than 11 chars.");
-
-                mName = value;
-
-            }
-
-        }
-
-        /// <summary>
-        /// Field Type (C N L D or M).
-        /// 新加的F按N算
-        /// </summary>
-        public DbfColumnType ColumnType
-        {
-            get
-            {
-                return mType;
-            }
-        }
-
-        /// <summary>
-        /// Returns column type as a char, (as written in the DBF column header)
-        /// N=number, C=char, B=binary, L=boolean, D=date, I=integer, M=memo
-        /// </summary>
-        public char ColumnTypeChar
-        {
-            get
-            {
-                switch (mType)
-                {
-                    case DbfColumnType.Number:
-                        return 'N';
-
-                    case DbfColumnType.Character:
-                        return 'C';
-
-                    case DbfColumnType.Binary:
-                        return 'B';
-
-                    case DbfColumnType.Boolean:
-                        return 'L';
-
-                    case DbfColumnType.Date:
-                        return 'D';
-
-                    case DbfColumnType.Integer:
-                        return 'I';
-
-                    case DbfColumnType.Memo:
-                        return 'M';
-
-                }
-
-                throw new Exception("Unrecognized field type!");
-
-            }
-        }
-
-        /// <summary>
-        /// Field Data Address offset from the start of the record.
-        /// </summary>
-        public int DataAddress
-        {
-            get
-            {
-                return mDataAddress;
-            }
-        }
-
-        /// <summary>
-        /// Length of the data in bytes.
-        /// </summary>
-        public int Length
-        {
-            get
-            {
-                return mLength;
-            }
-        }
-
-        /// <summary>
-        /// Field decimal count in Binary, indicating where the decimal is.
-        /// </summary>
-        public int DecimalCount
-        {
-            get
-            {
-                return mDecimalCount;
-            }
 
         }
 
@@ -316,7 +297,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         /// <returns></returns>
         public static DbfColumnType GetDbaseType(Type type)
         {
-
             if (type == typeof(string))
                 return DbfColumnType.Character;
             else if (type == typeof(double) || type == typeof(float))
@@ -361,7 +341,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         public static DbfColumn ShapeField()
         {
             return new DbfColumn("Geometry", DbfColumnType.Binary);
-
         }
 
         /// <summary>
@@ -371,7 +350,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         public static DbfColumn IdField()
         {
             return new DbfColumn("Row", DbfColumnType.Integer);
-
         }
 
         public object Clone()

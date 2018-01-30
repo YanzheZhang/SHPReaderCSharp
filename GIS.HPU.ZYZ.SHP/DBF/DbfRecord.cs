@@ -32,40 +32,33 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         /// Header provides information on all field types, sizes, precision and other useful information about the DBF.
         /// </summary>
         private DbfHeader mHeader = null;
-
         /// <summary>
         /// Dbf data are a mix of ASCII characters and binary, which neatly fit in a byte array.
         /// BinaryWriter would esentially perform the same conversion using the same Encoding class.
         /// </summary>
         private byte[] mData = null;
-
         /// <summary>
         /// Zero based record index. -1 when not set, new records for example.
         /// </summary>
         private int mRecordIndex = -1;
-
         /// <summary>
         /// Empty Record array reference used to clear fields quickly (or entire record).
         /// </summary>
         private readonly byte[] mEmptyRecord = null;
-
         /// <summary>
         /// Specifies whether we allow strings to be truncated. If false and string is longer than we can fit in the field, an exception is thrown.
         /// </summary>
         private bool mAllowStringTruncate = true;
-
         /// <summary>
         /// Specifies whether we allow the decimal portion of numbers to be truncated. 
         /// If false and decimal digits overflow the field, an exception is thrown.
         /// </summary>
         private bool mAllowDecimalTruncate = false;
-
         /// <summary>
         /// Specifies whether we allow the integer portion of numbers to be truncated.
         /// If false and integer digits overflow the field, an exception is thrown.
         /// </summary>
         private bool mAllowIntegerTruncate = false;
-
         //array used to clear decimals, we can clear up to 40 decimals which is much more than is allowed under DBF spec anyway.
         //Note: 48 is ASCII code for 0.
         private static readonly byte[] mDecimalClear = new byte[] {48,48,48,48,48,48,48,48,48,48,48,48,48,48,48,
@@ -76,34 +69,94 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         //Warning: do not make this one static because that would not be thread safe!! The reason I have 
         //placed this here is to skip small memory allocation/deallocation which fragments memory in .net.
         private int[] mTempIntVal = { 0 };
-
         //Ascii Encoder
         private readonly Encoding encoding = Encoding.ASCII;
-
         /// <summary>
         /// Column Name to Column Index map
         /// </summary>
         private readonly Dictionary<string, int> mColNameToConIdx = new Dictionary<string, int>(StringComparer.InvariantCulture);
 
+        #region 
         /// <summary>
-        /// 
+        /// Gets/sets a zero based record index. This information is not directly stored in DBF. 
+        /// It is the location of this record within the DBF. 
         /// </summary>
-        /// <param name="oHeader">Dbf Header will be locked once a record is created 
-        /// since the record size is fixed and if the header was modified it would corrupt the DBF file.</param>
-        public DbfRecord(DbfHeader oHeader)
+        /// <remarks>
+        /// This property is managed from outside this object,
+        /// CDbfFile object updates it when records are read. The reason we don't set it in the Read() 
+        /// function within this object is that the stream can be forward-only so the Position property 
+        /// is not available and there is no way to figure out what index the record was unless you 
+        /// count how many records were read, and that's exactly what CDbfFile does.
+        /// </remarks>
+        public int RecordIndex
         {
-            mHeader = oHeader;
-            mHeader.Locked = true;
-
-            //create a buffer to hold all record data. We will reuse this buffer to write all data to the file.
-            mData = new byte[mHeader.RecordLength];
-            mEmptyRecord = mHeader.EmptyDataRecord;
-            encoding = oHeader.encoding;
-
-            for (int i = 0; i < oHeader.mFields.Count; i++)
-                mColNameToConIdx[oHeader.mFields[i].Name] = i;
+            get
+            {
+                return mRecordIndex;
+            }
+            set
+            {
+                mRecordIndex = value;
+            }
         }
-
+        /// <summary>
+        /// Gets column count from header.
+        /// </summary>
+        public int ColumnCount
+        {
+            get
+            {
+                return mHeader.ColumnCount;
+            }
+        }
+        /// <summary>
+        /// Returns/sets flag indicating whether this record was tagged deleted. 
+        /// </summary>
+        /// <remarks>Use CDbf4File.Compress() function to rewrite dbf removing records flagged as deleted.</remarks>
+        /// <seealso cref="CDbf4File.Compress() function"/>
+        public bool IsDeleted
+        {
+            get { return mData[0] == '*'; }
+            set { mData[0] = value ? (byte)'*' : (byte)' '; }
+        }
+        /// <summary>
+        /// Specifies whether strings can be truncated. If false and string is longer than can fit in the field, an exception is thrown.
+        /// Default is True.
+        /// </summary>
+        public bool AllowStringTurncate
+        {
+            get { return mAllowStringTruncate; }
+            set { mAllowStringTruncate = value; }
+        }
+        /// <summary>
+        /// Specifies whether to allow the decimal portion of numbers to be truncated. 
+        /// If false and decimal digits overflow the field, an exception is thrown. Default is false.
+        /// </summary>
+        public bool AllowDecimalTruncate
+        {
+            get { return mAllowDecimalTruncate; }
+            set { mAllowDecimalTruncate = value; }
+        }
+        /// <summary>
+        /// Specifies whether integer portion of numbers can be truncated.
+        /// If false and integer digits overflow the field, an exception is thrown. 
+        /// Default is False.
+        /// </summary>
+        public bool AllowIntegerTruncate
+        {
+            get { return mAllowIntegerTruncate; }
+            set { mAllowIntegerTruncate = value; }
+        }
+        /// <summary>
+        /// Returns header object associated with this record.
+        /// </summary>
+        public DbfHeader Header
+        {
+            get
+            {
+                return mHeader;
+            }
+        }
         /// <summary>
         /// Set string data to a column, if the string is longer than specified column length it will be truncated!
         /// If dbf column type is not a string, input will be treated as dbf column 
@@ -277,7 +330,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
                 return new string(encoding.GetChars(mData, ocol.DataAddress, ocol.Length));//考虑中文
             }
         }
-
         /// <summary>
         /// Set string data to a column, if the string is longer than specified column length it will be truncated!
         /// If dbf column type is not a string, input will be treated as dbf column 
@@ -301,7 +353,27 @@ namespace GIS.HPU.ZYZ.SHP.DBF
                     throw new InvalidOperationException(string.Format("There's no column with name '{0}'", nColName));
             }
         }
+        #endregion 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="oHeader">Dbf Header will be locked once a record is created 
+        /// since the record size is fixed and if the header was modified it would corrupt the DBF file.</param>
+        public DbfRecord(DbfHeader oHeader)
+        {
+            mHeader = oHeader;
+            mHeader.Locked = true;
+
+            //create a buffer to hold all record data. We will reuse this buffer to write all data to the file.
+            mData = new byte[mHeader.RecordLength];
+            mEmptyRecord = mHeader.EmptyDataRecord;
+            encoding = oHeader.encoding;
+
+            for (int i = 0; i < oHeader.mFields.Count; i++)
+                mColNameToConIdx[oHeader.mFields[i].Name] = i;
+        }
+   
         /// <summary>
         /// Get date value.
         /// </summary>
@@ -320,7 +392,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
             else
                 throw new Exception("Invalid data type. Column '" + ocol.Name + "' is not a date column.");
         }
-
         /// <summary>
         /// Get date value.
         /// </summary>
@@ -343,7 +414,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
                 throw new Exception("Invalid data type. Column is of '" + ocol.ColumnType.ToString() + "' type, not date.");
 
         }
-
         /// <summary>
         /// Clears all data in the record.
         /// </summary>
@@ -353,7 +423,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
             mRecordIndex = -1;
 
         }
-
         /// <summary>
         /// returns a string representation of this record.
         /// </summary>
@@ -361,82 +430,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         public override string ToString()
         {
             return new string(encoding.GetChars(mData));
-        }
-
-        /// <summary>
-        /// Gets/sets a zero based record index. This information is not directly stored in DBF. 
-        /// It is the location of this record within the DBF. 
-        /// </summary>
-        /// <remarks>
-        /// This property is managed from outside this object,
-        /// CDbfFile object updates it when records are read. The reason we don't set it in the Read() 
-        /// function within this object is that the stream can be forward-only so the Position property 
-        /// is not available and there is no way to figure out what index the record was unless you 
-        /// count how many records were read, and that's exactly what CDbfFile does.
-        /// </remarks>
-        public int RecordIndex
-        {
-            get
-            {
-                return mRecordIndex;
-            }
-            set
-            {
-                mRecordIndex = value;
-            }
-        }
-
-        /// <summary>
-        /// Returns/sets flag indicating whether this record was tagged deleted. 
-        /// </summary>
-        /// <remarks>Use CDbf4File.Compress() function to rewrite dbf removing records flagged as deleted.</remarks>
-        /// <seealso cref="CDbf4File.Compress() function"/>
-        public bool IsDeleted
-        {
-            get { return mData[0] == '*'; }
-            set { mData[0] = value ? (byte)'*' : (byte)' '; }
-        }
-
-        /// <summary>
-        /// Specifies whether strings can be truncated. If false and string is longer than can fit in the field, an exception is thrown.
-        /// Default is True.
-        /// </summary>
-        public bool AllowStringTurncate
-        {
-            get { return mAllowStringTruncate; }
-            set { mAllowStringTruncate = value; }
-        }
-
-        /// <summary>
-        /// Specifies whether to allow the decimal portion of numbers to be truncated. 
-        /// If false and decimal digits overflow the field, an exception is thrown. Default is false.
-        /// </summary>
-        public bool AllowDecimalTruncate
-        {
-            get { return mAllowDecimalTruncate; }
-            set { mAllowDecimalTruncate = value; }
-        }
-
-        /// <summary>
-        /// Specifies whether integer portion of numbers can be truncated.
-        /// If false and integer digits overflow the field, an exception is thrown. 
-        /// Default is False.
-        /// </summary>
-        public bool AllowIntegerTruncate
-        {
-            get { return mAllowIntegerTruncate; }
-            set { mAllowIntegerTruncate = value; }
-        }
-
-        /// <summary>
-        /// Returns header object associated with this record.
-        /// </summary>
-        public DbfHeader Header
-        {
-            get
-            {
-                return mHeader;
-            }
         }
 
         /// <summary>
@@ -448,7 +441,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         {
             return mHeader[index];
         }
-
         /// <summary>
         /// Get column by name.
         /// </summary>
@@ -457,17 +449,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         public DbfColumn Column(string sName)
         {
             return mHeader[sName];
-        }
-
-        /// <summary>
-        /// Gets column count from header.
-        /// </summary>
-        public int ColumnCount
-        {
-            get
-            {
-                return mHeader.ColumnCount;
-            }
         }
 
         /// <summary>
@@ -490,9 +471,7 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         protected internal void Write(Stream osw)
         {
             osw.Write(mData, 0, mData.Length);
-
         }
-
         /// <summary>
         /// Writes data to stream. Make sure stream is positioned correctly because we simply write out data to it, and clear the record.
         /// </summary>
@@ -500,7 +479,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         protected internal void Write(Stream obw, bool bClearRecordAfterWrite)
         {
             obw.Write(mData, 0, mData.Length);
-
             if (bClearRecordAfterWrite)
                 Clear();
         }
@@ -519,8 +497,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         {
             DbfColumn ocol = mHeader[colIndex];
             return new string(encoding.GetChars(mData, ocol.DataAddress, ocol.Length));
-
         }
-
     }
 }

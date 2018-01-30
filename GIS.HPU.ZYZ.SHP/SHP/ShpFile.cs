@@ -19,11 +19,19 @@ namespace GIS.HPU.ZYZ.SHP.SHP
 {
     /// <summary>
     /// 负责shp文件的读写
+    /// 文件的读取和写入同一实例对象不能同时使用！
     /// 可以从shp文件和数据库的数据类中读取Header和Record信息
     /// 如果是写入信息，则需要先从数据库的数据类中读取Record信息，然后计算出Header信息
     /// </summary>
     /// <remarks>
-    /// 
+    /// 读取shp文件流程：
+    ///  var oshp = new ShpFile();
+    ///      oshp.Open(filepath, FileMode.Open);//open的同时执行了头文件的读取
+    ///      oshp.ReadShxRecord();//读取索引文件 此处需要注意shp头文件和shx头文件的FileLength不同其他都一样，这个在读取文件没影响，shx头文件直接使用shp的头文件
+    ///      oshp.ReadShpRecord();//读取记录
+    ///      oshp.ShpFileProject = ShapeProject.WGS_1984_Albers;//设置坐标系
+    ///      oshp.CoordTransPro2Geo();//投影转换
+    ///      string wkt = oshp.ShpRecord.RecordDic[1].WKTStr;//获取每个记录的wkt
     /// </remarks>
     public class ShpFile
     {
@@ -50,6 +58,10 @@ namespace GIS.HPU.ZYZ.SHP.SHP
         /// 标记是否已经读取文件头
         /// </summary>
         protected bool mHeaderWritten = false;
+        /// <summary>
+        /// 标记是否已经设置wkt
+        /// </summary>
+        protected bool mFileCreat = false;
         /// <summary>
         /// 读写shp文件流.
         /// </summary>
@@ -258,6 +270,76 @@ namespace GIS.HPU.ZYZ.SHP.SHP
         {
             if (mHeaderWritten && mShpFile.CanRead) {
                 mShpRecord.Read(mShpFileReader);
+            }
+        }
+        /// <summary>
+        /// 写入文件
+        /// </summary>
+        /// <param name="shpStream"></param>
+        /// <param name="shxStream"></param>
+        public void Creat(Stream shpStream, Stream shxStream) 
+        {
+            if (mShpFile != null)
+                Close();
+
+            mShpFile = shpStream;
+            mShxFile = shxStream;
+            mShpFileWriter = null;
+            mShxFileWriter = null;
+            //if (mShpFile.CanRead)
+            //    mShpFileReader = new BinaryReader(mShpFile);
+            if (mShpFile.CanWrite)
+                mShpFileWriter = new BinaryWriter(mShpFile);
+
+            //if (mShxFile.CanRead)
+            //    mShxFileReader = new BinaryReader(mShxFile);
+            if (mShxFile.CanWrite)
+                mShxFileWriter = new BinaryWriter(mShxFile);
+            //reset position
+            //mRecordsReadCount = 0;
+            //assume header is not written
+            mFileCreat = true;
+
+            if (mShpFile != null)
+            {
+                mIsReadOnly = !mShpFile.CanWrite;
+                mIsForwardOnly = !mShpFile.CanSeek;
+            }
+            //mShxRecord = new ShxRecord(mHeader);
+            mShpRecord = new ShpRecord(mHeader);
+        }
+        /// <summary>
+        /// 写入文件
+        /// </summary>
+        /// <param name="sPath"></param>
+        /// <param name="mode"></param>
+        public void Creat(string sPath, FileMode mode)
+        {
+            mFileName = sPath;
+            string shxpath = mFileName.Remove(mFileName.Length - 1, 1) + "x";
+            Creat(File.Open(sPath, mode), File.Open(shxpath, mode));
+        }
+        /// <summary>
+        /// 写入shx
+        /// 此时需要注意头文件不能和shp头文件关联，FileLength不同
+        /// </summary>
+        public void WriteShx() 
+        {
+            if (mFileCreat) {
+                mShxRecord.Write(mShxFileWriter);
+            }
+        }
+        /// <summary>
+        /// 写入shp
+        /// </summary>
+        /// <param name="wktList"></param>
+        public void WriteShp(List<string> wktList) 
+        {
+            if (mFileCreat) {
+                mShpRecord.GetWKTInfo(wktList);
+                mShxRecord = new ShxRecord(mShpRecord.Header);
+                mHeader.Write(mShpFileWriter);
+                mShxRecord.RecordDic= mShpRecord.Write(mShpFileWriter);
             }
         }
         /// <summary>

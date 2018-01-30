@@ -69,7 +69,7 @@ namespace GIS.HPU.ZYZ.SHP.SHX
         public Dictionary<ulong, ShxData> RecordDic
         {
             get { return mRecordDic; }
-            //set { mRecordDic = value; }
+            set { mRecordDic = value; }
         }
         #endregion
 
@@ -115,6 +115,57 @@ namespace GIS.HPU.ZYZ.SHP.SHX
                 item.ContentLength = (int)uContentLength;
                 mRecordDic.Add((ulong)(mRecordDic.Count+1), item);//key值从1开始
             }
+        }
+        /// <summary>
+        /// 写入record
+        /// </summary>
+        /// <param name="writer"></param>
+        public void Write(BinaryWriter writer) 
+        {
+            if (mRecordDic == null||mHeader==null) {
+                return;
+            }
+            writer.Flush();//清除
+            byte[] lbtFileCode = BitConverter.GetBytes(mHeader.FileCode);  //将int转变为byte
+            byte[] bbtFileCode = ByteTransUtil.little2big(lbtFileCode);
+            writer.Write(bbtFileCode);
+            int Unused = 0; //未使用 一共5个 big
+            byte[] lbtUnused = BitConverter.GetBytes(Unused);  //将int转变为byte
+            byte[] bbtUnused = ByteTransUtil.little2big(lbtUnused);
+            for (int i = 0; i < 5; i++)
+            {
+                writer.Write(bbtUnused);
+            }
+            int mFileLength = 50 + mRecordDic.Count * 4;//两个inter 4字
+            byte[] lbtFileLength = BitConverter.GetBytes(mFileLength);  //将int转变为byte
+            byte[] bbtFileLength = ByteTransUtil.little2big(lbtFileLength);
+            writer.Write(bbtFileLength);
+            writer.Write(mHeader.Version);
+            int tyeptemp = (int)mHeader.GeoType;
+            writer.Write(tyeptemp);
+            writer.Write(mHeader.Xmin);
+            writer.Write(mHeader.Ymin);
+            writer.Write(mHeader.Xmax);
+            writer.Write(mHeader.Ymax);
+            writer.Write(mHeader.Zmin);
+            writer.Write(mHeader.Zmax);
+            writer.Write(mHeader.Mmin);
+            writer.Write(mHeader.Mmax);
+            //---------------------写入记录---------------------
+            for (ulong i = 0; i < (ulong)mRecordDic.Count; i++)
+            {
+                
+                //写入shp
+                byte[] lbtOffset = BitConverter.GetBytes(mRecordDic[i+1].Offset);
+                byte[] bbtOffset = ByteTransUtil.little2big(lbtOffset);
+                writer.Write(bbtOffset);
+
+                byte[] lbtContentLength = BitConverter.GetBytes(mRecordDic[i + 1].ContentLength);
+                byte[] bbtContentLength = ByteTransUtil.little2big(lbtContentLength);
+                writer.Write(bbtContentLength);
+
+            }
+           
         }
     }
 }

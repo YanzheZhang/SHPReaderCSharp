@@ -120,7 +120,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         /// Header file descriptor size is 33 bytes (32 bytes + 1 terminator byte), followed by column metadata which is 32 bytes each.
         /// </summary>
         public const int FileDescriptorSize = 33;
-
         /// <summary>
         /// 头文件每个记录描述信息长度
         /// Field or DBF Column descriptor is 32 bytes long.
@@ -163,25 +162,7 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         /// </summary>
         public readonly Encoding encoding = Encoding.ASCII;
 
-        [Obsolete]
-        public DbfHeader()
-        {
-        }
-
-        public DbfHeader(Encoding encoding)
-        {
-            this.encoding = encoding;
-        }
-
-        /// <summary>
-        /// Specify initial column capacity.
-        /// </summary>
-        /// <param name="nInitialFields"></param>
-        public DbfHeader(int nFieldCapacity)
-        {
-            mFields = new List<DbfColumn>(nFieldCapacity);
-        }
-
+        #region 
         /// <summary>
         /// Gets header length.
         /// </summary>
@@ -191,6 +172,120 @@ namespace GIS.HPU.ZYZ.SHP.DBF
             {
                 return mHeaderLength;
             }
+        }
+        /// <summary>
+        /// Returns Number of columns in this dbf header.
+        /// </summary>
+        public int ColumnCount
+        {
+            get { return mFields.Count; }
+
+        }
+        /// <summary>
+        /// Size of one record in bytes. All fields + 1 byte delete flag.
+        /// </summary>
+        public int RecordLength
+        {
+            get
+            {
+                return mRecordLength;
+            }
+        }
+        /// <summary>
+        /// Get/Set number of records in the DBF.
+        /// </summary>
+        /// <remarks>
+        /// The reason we allow client to set RecordCount is beause in certain streams 
+        /// like internet streams we can not update record count as we write out records, we have to set it in advance,
+        /// so client has to be able to modify this property.
+        /// </remarks>
+        public uint RecordCount
+        {
+            get
+            {
+                return mNumRecords;
+            }
+            set
+            {
+                mNumRecords = value;
+                //set the dirty bit
+                mIsDirty = true;
+            }
+        }
+        /// <summary>
+        /// Get/set whether this header is read only or can be modified. When you create a CDbfRecord 
+        /// object and pass a header to it, CDbfRecord locks the header so that it can not be modified any longer.
+        /// in order to preserve DBF integrity.
+        /// </summary>
+        internal bool Locked
+        {
+            get
+            {
+                return mLocked;
+            }
+            set
+            {
+                mLocked = value;
+            }
+
+        }
+        /// <summary>
+        /// Returns true when this object is modified after read or write.
+        /// </summary>
+        public bool IsDirty
+        {
+            get
+            {
+                return mIsDirty;
+            }
+            set
+            {
+                mIsDirty = value;
+            }
+        }
+        /// <summary>
+        /// Look up a column index by name. Note that this is case sensitive, internally it does a lookup using a dictionary.
+        /// </summary>
+        /// <param name="sName"></param>
+        public DbfColumn this[string sName]
+        {
+            get
+            {
+                int colIndex = FindColumn(sName);
+                if (colIndex > -1)
+                    return mFields[colIndex];
+                return null;
+            }
+        }
+        /// <summary>
+        /// Returns column at specified index. Index is 0 based.
+        /// </summary>
+        /// <param name="nIndex">Zero based index.</param>
+        /// <returns></returns>
+        public DbfColumn this[int nIndex]
+        {
+            get
+            {
+                return mFields[nIndex];
+            }
+        }
+        #endregion 
+
+        [Obsolete]
+        public DbfHeader()
+        {
+        }
+        public DbfHeader(Encoding encoding)
+        {
+            this.encoding = encoding;
+        }
+        /// <summary>
+        /// Specify initial column capacity.
+        /// </summary>
+        /// <param name="nInitialFields"></param>
+        public DbfHeader(int nFieldCapacity)
+        {
+            mFields = new List<DbfColumn>(nFieldCapacity);
         }
 
         /// <summary>
@@ -224,7 +319,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
             mIsDirty = true;
             mColumnNameIndex = null;
         }
-
         /// <summary>
         /// Create and add a new column with specified name and type.
         /// </summary>
@@ -234,7 +328,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         {
             AddColumn(new DbfColumn(sName, type));
         }
-
         /// <summary>
         /// Create and add a new column with specified name, type, length, and decimal precision.
         /// </summary>
@@ -278,35 +371,7 @@ namespace GIS.HPU.ZYZ.SHP.DBF
             mIsDirty = true;
             mColumnNameIndex = null;
         }
-
-        /// <summary>
-        /// Look up a column index by name. Note that this is case sensitive, internally it does a lookup using a dictionary.
-        /// </summary>
-        /// <param name="sName"></param>
-        public DbfColumn this[string sName]
-        {
-            get
-            {
-                int colIndex = FindColumn(sName);
-                if (colIndex > -1)
-                    return mFields[colIndex];
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Returns column at specified index. Index is 0 based.
-        /// </summary>
-        /// <param name="nIndex">Zero based index.</param>
-        /// <returns></returns>
-        public DbfColumn this[int nIndex]
-        {
-            get
-            {
-                return mFields[nIndex];
-            }
-        }
-
+ 
         /// <summary>
         /// Finds a column index by using a fast dictionary lookup-- creates column dictionary on first use. Returns -1 if not found. Note this is case sensitive!
         /// </summary>
@@ -376,91 +441,12 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         {
             get { return mEmptyRecord ?? (mEmptyRecord = encoding.GetBytes("".PadLeft(mRecordLength, ' ').ToCharArray())); }
         }
-
-        /// <summary>
-        /// Returns Number of columns in this dbf header.
-        /// </summary>
-        public int ColumnCount
-        {
-            get { return mFields.Count; }
-
-        }
-
-        /// <summary>
-        /// Size of one record in bytes. All fields + 1 byte delete flag.
-        /// </summary>
-        public int RecordLength
-        {
-            get
-            {
-                return mRecordLength;
-            }
-        }
-
-        /// <summary>
-        /// Get/Set number of records in the DBF.
-        /// </summary>
-        /// <remarks>
-        /// The reason we allow client to set RecordCount is beause in certain streams 
-        /// like internet streams we can not update record count as we write out records, we have to set it in advance,
-        /// so client has to be able to modify this property.
-        /// </remarks>
-        public uint RecordCount
-        {
-            get
-            {
-                return mNumRecords;
-            }
-
-            set
-            {
-                mNumRecords = value;
-
-                //set the dirty bit
-                mIsDirty = true;
-            }
-        }
-
-        /// <summary>
-        /// Get/set whether this header is read only or can be modified. When you create a CDbfRecord 
-        /// object and pass a header to it, CDbfRecord locks the header so that it can not be modified any longer.
-        /// in order to preserve DBF integrity.
-        /// </summary>
-        internal bool Locked
-        {
-            get
-            {
-                return mLocked;
-            }
-            set
-            {
-                mLocked = value;
-            }
-
-        }
-
         /// <summary>
         /// Use this method with caution. Headers are locked for a reason, to prevent DBF from becoming corrupt.
         /// </summary>
         public void Unlock()
         {
             mLocked = false;
-        }
-
-        /// <summary>
-        /// Returns true when this object is modified after read or write.
-        /// </summary>
-        public bool IsDirty
-        {
-            get
-            {
-                return mIsDirty;
-            }
-
-            set
-            {
-                mIsDirty = value;
-            }
         }
 
         /// <summary>

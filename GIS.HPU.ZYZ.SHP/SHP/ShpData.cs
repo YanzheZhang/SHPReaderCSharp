@@ -63,7 +63,22 @@ namespace GIS.HPU.ZYZ.SHP.SHP
             set {
                 mWKTStr = value; 
                 if (!mWKT2Geo) {
-                    mGeoShape.TransFormWKT(mWKTStr);
+                    //mGeoShape.TransFormWKT(mWKTStr);
+                    if (mWKTStr.Contains("POINT"))
+                    {
+                        mGeoShape = new EVPoint();
+                        mGeoShape.TransFormWKT(mWKTStr);
+                    }
+                    else if (mWKTStr.Contains("LINESTRING"))
+                    {
+                        mGeoShape = new EVPolyLine();
+                        mGeoShape.TransFormWKT(mWKTStr);
+                    }
+                    else if (mWKTStr.Contains("POLYGON"))
+                    {
+                        mGeoShape = new EVPolygon();
+                        mGeoShape.TransFormWKT(mWKTStr);
+                    }
                     mWKT2Geo = true;
                 }
             }

@@ -14,13 +14,17 @@ namespace SHPTest
         {
             string testPath = AppDomain.CurrentDomain.BaseDirectory;
             //dbf写
-            DbfTestWrite(Path.Combine(testPath, "testdata\\test.dbf"));
+            DbfTestWrite(Path.Combine(testPath, "testdata\\test1.dbf"));
             //dbf读
-            DbfTestRead(Path.Combine(testPath, "testdata\\test.dbf"));
+            //DbfTestRead(Path.Combine(testPath, "testdata\\test.dbf"));
+
+            //shp写入
+            ShpTestWrite(Path.Combine(testPath, "testdata\\test1.shp"));
             //shp读取
+            //ShpTestRead(Path.Combine(testPath, "testdata\\test.shp"));// 结果查看\\实施方案_项目区边界
             //ShpTestRead(Path.Combine(testPath, "testdata\\点.shp"));
             //ShpTestRead(Path.Combine(testPath, "testdata\\线.shp"));
-            ShpTestRead(Path.Combine(testPath, "testdata\\面.shp"));
+            //ShpTestRead(Path.Combine(testPath, "testdata\\面.shp"));
             Console.ReadKey();
         }
 
@@ -37,15 +41,16 @@ namespace SHPTest
 
             var orec = new DbfRecord(odbf.Header) { AllowDecimalTruncate = true };
             List<User> list = User.GetList();
-            foreach (var item in list)
-            {
+            //foreach (var item in list)
+            //{
+            User item=list[0];
                 orec[0] = item.UserCode;
                 orec[1] = item.UserName;
                 orec[2] = item.Address;
                 orec[3] = item.date.ToString("yyyy-MM-dd HH:mm:ss");
                 orec[4] = item.money.ToString();
                 odbf.Write(orec, true);
-            }
+            //}
             odbf.Close();
         }
 
@@ -73,6 +78,18 @@ namespace SHPTest
             Console.Read();
         }
 
+        private static void ShpTestWrite(string filepath) {
+            string wkt = "POLYGON ((125.96146242562871 42.286033095153826,125.96045391503911 42.288221777709978,125.961333679596 42.289101542266863,125.96285717431645 42.289337576660174,125.96596853677373 42.288951338562029,125.96738474313359 42.287942827972429,125.96753494683843 42.286698282989519,125.96611874047856 42.285453738006609,125.96395151559453 42.285861433776873,125.96285717431645 42.286590994628924,125.96225635949712 42.28618329885866,125.962234901825 42.28618329885866,125.96146242562871 42.286033095153826),(125.96146242562871 42.286033095153826,125.96045391503911 42.288221777709978,125.961333679596 42.289101542266863,125.96285717431645 42.289337576660174,125.96596853677373 42.288951338562029,125.96738474313359 42.287942827972429,125.96753494683843 42.286698282989519,125.96611874047856 42.285453738006609,125.96395151559453 42.285861433776873,125.96285717431645 42.286590994628924,125.96225635949712 42.28618329885866,125.962234901825 42.28618329885866,125.96146242562871 42.286033095153826))";
+            //string wkt = "POINT (125.96146242562871 42.286033095153826)";
+            List<string> lwkt = new List<string>();
+            lwkt.Add(wkt);
+            var oshp = new ShpFile();
+            oshp.Creat(filepath, FileMode.Create);
+            oshp.WriteShp(lwkt);
+            oshp.WriteShx();
+            oshp.Close();
+        }
+
         private static void ShpTestRead(string filepath) 
         {
             var oshp = new ShpFile();
@@ -84,7 +101,6 @@ namespace SHPTest
             string wkt = oshp.ShpRecord.RecordDic[1].WKTStr;//获取wkt
             Console.WriteLine(wkt);
         }
-
 
     }
     /// <summary>

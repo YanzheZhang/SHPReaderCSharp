@@ -205,6 +205,13 @@ namespace GIS.HPU.ZYZ.SHP.SHP
             byte[] lbtFileCode = BitConverter.GetBytes(mFileCode);  //将int转变为byte
             byte[] bbtFileCode = ByteTransUtil.little2big(lbtFileCode);
             writer.Write(bbtFileCode);
+            int Unused = 0; //未使用 一共5个 big
+            byte[] lbtUnused = BitConverter.GetBytes(Unused);  //将int转变为byte
+            byte[] bbtUnused = ByteTransUtil.little2big(lbtUnused);
+            for (int i = 0; i < 5; i++)
+            {
+                writer.Write(bbtUnused);
+            }
             byte[] lbtFileLength = BitConverter.GetBytes(mFileLength);  //将int转变为byte
             byte[] bbtFileLength = ByteTransUtil.little2big(lbtFileLength);
             writer.Write(bbtFileLength);
