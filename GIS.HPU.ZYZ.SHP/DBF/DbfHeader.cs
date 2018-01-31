@@ -477,9 +477,12 @@ namespace GIS.HPU.ZYZ.SHP.DBF
             // write the length of a record
             writer.Write((ushort)mRecordLength);
 
-            // write the reserved bytes in the header
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 17; i++)
                 writer.Write((byte)0);
+            byte driverID = 77;
+            writer.Write(driverID);
+            writer.Write((byte)0);
+            writer.Write((byte)0);
 
             // write all of the header records
             byte[] byteReserved = new byte[14];  //后面的14字节 (2:保留字节 1:工作区ID 10:保留字节1:MDX标识) these are initialized to 0 by default.
@@ -550,18 +553,32 @@ namespace GIS.HPU.ZYZ.SHP.DBF
             int day = (int)reader.ReadByte();
             mUpdateDate = new DateTime(year + 1900, month, day);
 
-            // read the number of records.
+            // 文件中的记录条数.
             mNumRecords = reader.ReadUInt32();
-
-            // read the length of the header structure.
+            // 文件头中的字节数
             mHeaderLength = reader.ReadUInt16();
-
-            // read the length of a record
+            // 一条记录中的字节长度
             mRecordLength = reader.ReadInt16();
 
             // skip the reserved bytes in the header.
             //1表示未完成的操作 1dBASE IV编密码标记 12保留字节，用于多用户处理时使用1DBF文件的MDX标识1Language driver ID2保留字节
-            reader.ReadBytes(20);
+            //reader.ReadBytes(20);
+            byte[] re1 = reader.ReadBytes(2);//保留字节，用于以后添加新的说明性信息时使用，这里用0来填写
+            byte[] re2 = reader.ReadBytes(1);//表示未完成的操作
+            byte[] re3 = reader.ReadBytes(1);//dBASE IV编密码标记。
+            byte[] re4 = reader.ReadBytes(12);//保留字节，用于多用户处理时使用。
+            /*
+             * DBF文件的MDX标识。
+             * 在创建一个DBF 表时 ，
+             * 如果使用了MDX 格式的索引文件，
+             * 那么 DBF 表的表头中的这个字节就自动被设置了一个标志，
+             * 当你下次试图重新打开这个DBF表的时候，
+             * 数据引擎会自动识别这个标志，
+             * 如果此标志为真，则数据引擎将试图打开相应的MDX 文件。
+             */
+            byte[] re5 = reader.ReadBytes(1);
+            byte[] re6 = reader.ReadBytes(1);//Language driver ID. 国家导出：77 国家标准：0  arcgis导出：77 
+            byte[] re7 = reader.ReadBytes(2);//保留字节，用于以后添加新的说明性信息时使用，这里用0来填写。
 
             // calculate the number of Fields in the header
             int nNumFields = (mHeaderLength - FileDescriptorSize) / ColumnDescriptorSize;

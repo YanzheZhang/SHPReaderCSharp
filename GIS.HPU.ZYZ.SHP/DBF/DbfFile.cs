@@ -441,7 +441,6 @@ namespace GIS.HPU.ZYZ.SHP.DBF
             if (bClearRecordAfterWrite)
                 orec.Clear();
         }
-
         /// <summary>
         /// Update a record. RecordIndex (zero based index) must be more than -1, otherwise an exception is thrown.
         /// You can also use Write method which updates a record if it has RecordIndex or adds a new one if RecordIndex == -1.
