@@ -16,7 +16,7 @@ namespace SHPTest
             //dbf写
             //DbfTestWrite(Path.Combine(testPath, "testdata\\导出t.dbf"));
             //dbf读
-            DbfTestRead(Path.Combine(testPath, "testdata\\result\\936\\导出t.dbf"));// result\\936\\图斑_面 result\\936\\导出t  国家导出\\面  国家标准\\面状措施
+            DbfTestRead(Path.Combine(testPath, "testdata\\国家导出\\面.dbf"));// result\\936\\图斑_面 result\\936\\导出t  国家导出\\面  国家标准\\面状措施
 
             //shp写入
             //ShpTestWrite(Path.Combine(testPath, "testdata\\导出t.shp"));
@@ -113,12 +113,12 @@ namespace SHPTest
                 if (record.ColumnCount >= 5)
                 {
                     MapPolygon item = new MapPolygon();
-                    item.Code = record["图斑编码"].Trim();//record.Column(record.FindColumn("编号"));
-                    item.Mark = record["措施代码"].Trim();
-                    item.Name = record["措施名称"].Trim();
-                    item.State = record["利用现状"].Trim();
-                    item.Number =Convert.ToSingle( record["措施数量"]);
-                    item.Slope = Convert.ToSingle(record["坡度"]);
+                    item.Code = record[record.FindColumEx("图斑编码")].Trim();// record["图斑编码"].Trim();//record.Column(record.FindColumn("编号"));
+                    item.Mark = record[record.FindColumEx("措施代码")].Trim();//record["措施代码"].Trim();
+                    item.Name = record[record.FindColumEx("措施名称")].Trim();//record["措施名称"].Trim();
+                    item.State = record[record.FindColumEx("利用现状")].Trim();//record["利用现状"].Trim();
+                    //item.Number =Convert.ToSingle( record["措施数量"]);
+                    //item.Slope = Convert.ToSingle(record["坡度"]);
                     list.Add(item);
                 }
             }

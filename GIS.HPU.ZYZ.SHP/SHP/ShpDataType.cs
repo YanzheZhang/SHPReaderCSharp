@@ -252,7 +252,7 @@ namespace GIS.HPU.ZYZ.SHP.SHP
             {
                 index = Points.Count;
             }
-            if (index > 2)
+            if (index >= 2)
             {
                 wkt += "LINESTRING ((";
                 wkt += ((EVPoint)Points[0]).X + " " + ((EVPoint)Points[0]).Y;

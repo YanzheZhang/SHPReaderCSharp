@@ -160,7 +160,7 @@ namespace GIS.HPU.ZYZ.SHP.DBF
         /// <summary>
         /// 编码方式
         /// </summary>
-        public readonly Encoding encoding = Encoding.ASCII;
+        public Encoding encoding = Encoding.ASCII;
 
         #region 
         /// <summary>
@@ -576,8 +576,17 @@ namespace GIS.HPU.ZYZ.SHP.DBF
              * 数据引擎会自动识别这个标志，
              * 如果此标志为真，则数据引擎将试图打开相应的MDX 文件。
              */
-            byte[] re5 = reader.ReadBytes(1);
-            byte[] re6 = reader.ReadBytes(1);//Language driver ID. 国家导出：77 国家标准：0  arcgis导出：77 
+            byte re5 = reader.ReadByte();
+            byte re6 = reader.ReadByte();//Language driver ID. 国家导出：0(无法导入)   国家标准：77  arcgis导出：77 
+            byte driverID = 77;
+            if (re6 == driverID)
+            {
+                this.encoding = Encoding.GetEncoding(936);
+            }
+            else
+            {
+                this.encoding = Encoding.UTF8;
+            }
             byte[] re7 = reader.ReadBytes(2);//保留字节，用于以后添加新的说明性信息时使用，这里用0来填写。
 
             // calculate the number of Fields in the header
